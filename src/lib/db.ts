@@ -1,8 +1,9 @@
+// lib/db.ts
 import mysql from "mysql2/promise";
 
-export const db = mysql.createPool({
-  host: "localhost",
-  user: "root", // XAMPP default user
-  password: "", // XAMPP default no password
-  database: "quiz_app", // Create this database in phpMyAdmin
+export const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
 });
