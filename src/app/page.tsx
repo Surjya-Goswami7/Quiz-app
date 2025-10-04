@@ -2,72 +2,101 @@
 
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 
 export default function Home() {
   const { data: session, status } = useSession();
+  const router = useRouter();
+
+  const handleLoginDefault = useCallback(() => {
+    // login and return to home (not quiz)
+    signIn("google", { callbackUrl: "/" });
+  }, []);
+
+  const handleStartQuiz = useCallback(() => {
+    if (session?.user) {
+      router.push("/quiz");
+    } else {
+      signIn("google", { callbackUrl: "/" });
+    }
+  }, [session, router]);
 
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-r from-purple-400 to-blue-500">
-        <p className="text-white text-xl">Loading...</p>
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black">
+        <p className="text-white text-xl font-medium animate-pulse">
+          Loading...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-r from-purple-400 to-blue-500">
-      <h1 className="text-4xl font-bold text-white mb-6">🎯 Online Quiz App</h1>
-
-      {/* If user is signed in */}
-      {session?.user ? (
-        <div className="flex flex-col items-center space-y-4">
+    <div className="relative min-h-screen bg-gradient-to-br from-purple-800 via-black to-indigo-900 overflow-hidden text-white">
+      {/* Navbar */}
+      <nav className="absolute top-0 left-0 w-full flex justify-between items-center px-10 py-5 bg-transparent backdrop-blur-sm z-10">
+        <div className="flex items-center gap-3">
           <img
-            src={session.user.image ?? "/default-avatar.png"}
-            alt="avatar"
-            className="w-16 h-16 rounded-full border-2 border-white"
+            src="/logo.png"
+            alt="QuizMaster Logo"
+            className="w-10 h-10 drop-shadow-lg"
           />
-          <p className="text-white text-lg">
-            Welcome, <span className="font-semibold">{session.user.name}</span>!
-          </p>
-          <div className="space-x-4">
-            <Link
-              href="/quiz"
-              className="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600"
-            >
-              Start Quiz
-            </Link>
+          <h1 className="text-2xl font-extrabold tracking-wide text-white drop-shadow-lg">
+            Quiz<span className="text-yellow-400">Master</span>
+          </h1>
+        </div>
+
+        {session?.user ? (
+          <div className="flex items-center gap-4">
+            <img
+              src={session.user.image ?? "/default-avatar.png"}
+              alt="User Avatar"
+              className="w-9 h-9 rounded-full border border-gray-400 shadow-sm"
+            />
+            <p className="text-sm font-medium">{session.user.name}</p>
             <button
-              onClick={() => signOut()}
-              className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600"
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg font-semibold transition"
             >
               Logout
             </button>
           </div>
-        </div>
-      ) : (
-        // If not signed in
-        <div className="space-x-4">
+        ) : (
           <button
-            onClick={() => signIn("google", { callbackUrl: "/" })}
-            className="bg-white text-blue-600 px-4 py-2 rounded shadow hover:bg-gray-200"
-          >
-            Register Or Login
-          </button>
-          {/* Keep Register/Login if you still want custom credentials */}
-          {/* <Link
-            href="/register"
-            className="bg-white text-blue-600 px-4 py-2 rounded shadow hover:bg-gray-200"
-          >
-            Register
-          </Link> */}
-          {/* <Link
-            href="/login"
-            className="bg-yellow-400 text-black px-4 py-2 rounded shadow hover:bg-yellow-500"
+            onClick={handleLoginDefault}
+            className="bg-yellow-400 hover:bg-yellow-300 text-black font-semibold px-6 py-2 rounded-lg transition"
           >
             Login
-          </Link> */}
-        </div>
-      )}
+          </button>
+        )}
+      </nav>
+
+      {/* Main content */}
+      <main className="flex flex-col justify-center items-center h-screen text-center px-4">
+        <h1 className="text-5xl sm:text-6xl font-extrabold mb-4 drop-shadow-2xl">
+          Welcome to <span className="text-yellow-400">QuizMaster</span>
+        </h1>
+        <p className="text-gray-200 text-lg mb-10 max-w-xl">
+          Test your knowledge, challenge your friends, and win exciting rewards!
+        </p>
+
+        {/* If logged in, show Start Quiz button; otherwise Login to Play */}
+        <button
+          onClick={handleStartQuiz}
+          className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-300 hover:to-orange-400 text-black font-semibold px-10 py-4 rounded-full text-lg shadow-lg transform hover:scale-105 transition duration-300"
+        >
+          {session?.user ? "🚀 Start the Quiz" : "🎮 Login to Play"}
+        </button>
+
+        <p className="mt-10 text-sm text-gray-400 italic">
+          “Knowledge is power — show the world what you’ve got!”
+        </p>
+      </main>
+
+      <footer className="absolute bottom-4 w-full text-center text-gray-500 text-sm">
+        © {new Date().getFullYear()} QuizMaster. All rights reserved.
+      </footer>
     </div>
   );
 }

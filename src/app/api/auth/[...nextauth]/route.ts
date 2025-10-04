@@ -21,12 +21,12 @@ const authConfig = NextAuth({
 
       if ((rows as any[]).length === 0) {
         await pool.query(
-          "INSERT INTO users (name, email, role, image) VALUES (?, ?, ?, ?)",
+          "INSERT INTO users (username, email, role, image) VALUES (?, ?, ?, ?)",
           [profile.name, profile.email, "user", profile.picture]
         );
       } else {
         await pool.query(
-          "UPDATE users SET name = ?, image = ? WHERE email = ?",
+          "UPDATE users SET username = ?, image = ? WHERE email = ?",
           [profile.name, profile.picture, profile.email]
         );
       }
