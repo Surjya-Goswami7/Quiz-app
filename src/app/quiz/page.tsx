@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { questions as allQuestions } from "@/data/questions";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -47,7 +48,7 @@ function pickFifty(options: string[], correct: string) {
 /* ------------------------- Main Component ------------------------- */
 export default function QuizPage() {
   const router = useRouter();
-
+  const { data: session, status } = useSession();
   const rounds = useMemo(() => {
     return [
       allQuestions.filter((q) => q.round === 1),
@@ -180,7 +181,7 @@ export default function QuizPage() {
 
     // Timeout handling
     if (meta === "timeout") {
-      toast.error("⏰ Time’s up! Question marked wrong.");
+      toast.error("Time’s up! Moving To Next Question");
       // record as submitted wrong
       setAnswersMap((m) => ({
         ...m,
@@ -200,7 +201,7 @@ export default function QuizPage() {
         return toast.warn("Skip already used.");
       }
       consumeLifeline(roundIdx, "skip");
-      toast.info("⏭ Question skipped.");
+      toast.info("Question skipped.");
       setAnswersMap((m) => ({
         ...m,
         [key]: {
@@ -230,7 +231,7 @@ export default function QuizPage() {
           consumeLifeline(roundIdx, "bonus");
           // clear the activated flag for this round
           setBonusActive((b) => ({ ...b, [roundIdx]: false }));
-          toast.success("💎 Correct! Bonus point awarded!");
+          toast.success("Correct! Bonus point awarded!");
         } else {
           // bonus requested/active but already consumed
           toast.warn("Bonus already used for this round.");
@@ -258,7 +259,7 @@ export default function QuizPage() {
   const proceedToNext = (newConsecutiveWrong: number, skipped: boolean) => {
     // check disqualification: 3 consecutive wrongs
     if (!skipped && newConsecutiveWrong >= 3) {
-      toast.error("❌ 3 consecutive wrong answers — disqualified.");
+      toast.error("3 consecutive wrong answers — disqualified.");
       setTimeout(() => router.push("/"), 2000);
       return;
     }
@@ -317,6 +318,11 @@ export default function QuizPage() {
 
   /* ------------------------- Finish ------------------------- */
   const handleFinish = async () => {
+    if (!session?.user) { 
+       signIn("google", { callbackUrl: "/" });
+       return
+    }
+    const userId = session?.user.id;
     let prize: string | null = null;
     if (score >= 31) prize = "Trip to Switzerland (3 nights 4 days)";
     else if (score > 25) prize = "$1,000,000";
@@ -325,9 +331,9 @@ export default function QuizPage() {
 
     // Save result to database via API
     try {
-      await axios.post("/api/saveResult", { score, prize });
+      await axios.post("/api/saveResult", { userId, score, prize });
     } catch (err) {
-      toast.error("Failed to save your result.");
+      toast.error(`Failed to save your result ${err}.`);
     }
 
     setDialog({
@@ -374,7 +380,7 @@ export default function QuizPage() {
               className="bg-emerald-400 px-4 py-2 rounded font-semibold text-black"
               onClick={dialog.onConfirm}
             >
-              ✅ Continue
+              Continue
             </button>
           </div>
         </div>
@@ -424,7 +430,7 @@ export default function QuizPage() {
                 const isCorrectOption = opt === currentQuestion.answer;
 
                 let baseClass =
-                  "px-4 py-3 rounded-md shadow-inner text-left transition-colors duration-150 border ";
+                  "px-4 py-3 cursor-pointer rounded-md shadow-inner text-left transition-colors duration-150 border ";
                 if (isAnswered) {
                   // show correct green, selected-wrong red, others dark
                   if (isCorrectOption)
@@ -468,15 +474,24 @@ export default function QuizPage() {
           {/* Right column (lifelines, progress, actions) */}
           <div className="w-80 flex flex-col gap-4">
             <div className="bg-[#071427] rounded-lg p-4 border border-[rgba(255,255,255,0.02)]">
-              <div className="text-xs text-gray-400 mb-3">
-                Lifelines (per round)
-              </div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs text-gray-400">Lifelines</span>
+                  <div className="relative group">
+                    <i className="text-gray-400 text-xs cursor-pointer border border-gray-600 rounded-full px-[6px] py-[1px]">i</i>
+                    {/* Tooltip */}
+                    <div className="absolute right-0 top-5 hidden w-56 text-[11px] text-gray-300 bg-[#0d1a2e] border border-gray-700 rounded-lg p-2 shadow-lg group-hover:block z-10">
+                      <p className="mb-1"><strong>Skip</strong> – Skip the current question once per round.</p>
+                      <p className="mb-1"><strong>50/50</strong> – Removes two incorrect options.</p>
+                      <p><strong>Bonus</strong> – Earn +1 extra point for a correct answer.</p>
+                    </div>
+                  </div>
+                </div>
 
               {/* Skip button — pink gradient pill */}
               <button
                 onClick={useSkip}
                 disabled={isAnswered || !lifelines[roundIdx].skip}
-                className={`w-full py-3 rounded-lg font-semibold mb-3 shadow-md ${
+                className={`w-full cursor-pointer py-3 rounded-lg font-semibold mb-3 shadow-md ${
                   lifelines[roundIdx].skip
                     ? "bg-gradient-to-r from-[#ff7aa2] to-[#ff9bb3] text-black"
                     : "bg-[#1b2430] text-gray-400"
@@ -489,7 +504,7 @@ export default function QuizPage() {
               <button
                 onClick={useFifty}
                 disabled={isAnswered || !lifelines[roundIdx].fifty}
-                className={`w-full py-3 rounded-lg font-semibold mb-3 shadow-md ${
+                className={`w-full cursor-pointer py-3 rounded-lg font-semibold mb-3 shadow-md ${
                   lifelines[roundIdx].fifty
                     ? "bg-gradient-to-r from-[#6fb7ff] to-[#bfe9ff] text-black"
                     : "bg-[#1b2430] text-gray-400"
@@ -502,7 +517,7 @@ export default function QuizPage() {
               <button
                 onClick={useBonus}
                 disabled={isAnswered || !lifelines[roundIdx].bonus}
-                className={`w-full py-3 rounded-lg font-semibold ${
+                className={`w-full py-3 cursor-pointer rounded-lg font-semibold ${
                   lifelines[roundIdx].bonus
                     ? "bg-gradient-to-r from-[#9dffb4] to-[#7bffb4] text-black"
                     : "bg-[#1b2430] text-gray-400"
@@ -534,14 +549,7 @@ export default function QuizPage() {
 
             {/* Submit area styled as in screenshot */}
             <div className="bg-[#071427] rounded-lg p-4 border border-[rgba(255,255,255,0.02)] flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
-                <button
-                  onClick={() => index > 0 && setIndex((i) => i - 1)}
-                  className="w-12 h-12 rounded-lg flex items-center justify-center bg-[#0a0f12] border border-[rgba(255,255,255,0.03)]"
-                >
-                  ◀
-                </button>
-
+              <div className="flex flex-col items-stretch gap-3">
                 <button
                   onClick={() => {
                     if (isAnswered)
@@ -553,7 +561,7 @@ export default function QuizPage() {
                     handleSubmit(selected);
                   }}
                   disabled={isAnswered}
-                  className={`flex-1 py-3 rounded-lg font-semibold text-black ${
+                  className={`w-full cursor-pointer py-3 rounded-lg font-semibold text-black ${
                     isAnswered ? "bg-[#22332d]" : "bg-[#9dffb4]"
                   }`}
                 >
@@ -571,7 +579,7 @@ export default function QuizPage() {
                     handleSubmit(selected, "bonus");
                   }}
                   disabled={isAnswered}
-                  className={`w-36 py-3 rounded-lg font-semibold text-black ${
+                  className={`w-full py-3 cursor-pointer rounded-lg font-semibold text-black ${
                     isAnswered ? "bg-[#6f5f2a]" : "bg-[#ffd86b]"
                   }`}
                 >

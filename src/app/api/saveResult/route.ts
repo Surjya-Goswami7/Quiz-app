@@ -1,32 +1,29 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import mysql from "mysql2/promise";
+import { NextResponse, NextRequest } from "next/server";
 import { pool } from "@/lib/db";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
-
-  const { score, prize } = req.body;
-
-  if (score === undefined) {
-    return res.status(400).json({ message: "Score is required" });
-  }
-
+export async function POST(req: NextRequest) {
+  const connection = await pool.getConnection();
   try {
-    const conn = await pool.getConnection();
-    try {
-      const query = "INSERT INTO results (id, user_id, round, score, status";
-      await conn.execute(query, [score, prize || null]);
-      res.status(200).json({ message: "Result saved successfully" });
-    } finally {
-      conn.release();
+    const { userId, score, prize } = await req.json();
+    console.log('userId score prize', userId ,score, prize)
+    if (score === undefined) {
+      return NextResponse.json({ status: 400, message: "Score is required" });
     }
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Database error", error: err });
+
+    //if user already exists in the results table then update his data
+    const query = "INSERT INTO results (user_id, score, prize) VALUES (?, ?, ?)";
+    await connection.query(query, [userId, score, prize || null]);
+    return NextResponse.json({
+      status: 200,
+      message: "Result saved successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({
+      status: 500,
+      message: `Error Occurred While saving ${error}`,
+    });
+  } finally {
+    connection.release();
   }
 }

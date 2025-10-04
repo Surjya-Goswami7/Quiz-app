@@ -34,25 +34,19 @@ export default function Home() {
     <div className="relative min-h-screen bg-gradient-to-br from-purple-800 via-black to-indigo-900 overflow-hidden text-white">
       {/* Navbar */}
       <nav className="absolute top-0 left-0 w-full flex justify-between items-center px-10 py-5 bg-transparent backdrop-blur-sm z-10">
-        <div className="flex items-center gap-3">
-          {/* <img
-           // src="/logo.png"
-            alt="QuizMaster Logo"
-            className="w-10 h-10 drop-shadow-lg"
-          /> */}
+        <div className="flex items-center gap-3 cursor-pointer">
           <h1 className="text-2xl font-extrabold tracking-wide text-white drop-shadow-lg">
             Quiz<span className="text-yellow-400">Master</span>
           </h1>
         </div>
 
         {session?.user ? (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 cursor-pointer">
             <img
               src={session.user.image ?? "/default-avatar.png"}
               alt="User Avatar"
               className="w-9 h-9 rounded-full border border-gray-400 shadow-sm"
             />
-            <p className="text-sm font-medium">{session.user.name}</p>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
               className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg font-semibold transition"
@@ -82,9 +76,9 @@ export default function Home() {
         {/* If logged in, show Start Quiz button; otherwise Login to Play */}
         <button
           onClick={handleStartQuiz}
-          className=" cursor-pointer bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-300 hover:to-orange-400 text-black font-semibold px-10 py-4 rounded-full text-lg shadow-lg transform hover:scale-105 transition duration-300"
+          className="cursor-pointer bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-300 hover:to-orange-400 text-black font-semibold px-10 py-4 rounded-full text-lg shadow-lg transform hover:scale-105 transition duration-300"
         >
-          {session?.user ? "Play Now !" : "Login to Play"}
+          {session?.user ? "Let's Begin !" : "Login to Play"}
         </button>
 
         <p className="mt-10 text-sm text-gray-400 italic">
