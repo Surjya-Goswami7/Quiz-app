@@ -236,10 +236,10 @@ export default function QuizPage() {
           toast.warn("Bonus already used for this round.");
         }
       } else {
-        toast.success("✅ Correct!");
+        toast.success("Correct!");
       }
     } else {
-      toast.error("❌ Wrong answer!");
+      toast.error("Wrong answer!");
     }
 
     // update score and answersMap

@@ -1,16 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import mysql from "mysql2/promise";
-
-// Create a MySQL connection pool
-const pool = mysql.createPool({
-  host: "localhost", // XAMPP MySQL host
-  user: "root", // your MySQL username
-  password: "", // your MySQL password
-  database: "quizdb", // your database name
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+import { pool } from "@/lib/db";
 
 export default async function handler(
   req: NextApiRequest,
@@ -29,8 +19,7 @@ export default async function handler(
   try {
     const conn = await pool.getConnection();
     try {
-      const query =
-        "INSERT INTO results (score, prize, created_at) VALUES (?, ?, NOW())";
+      const query = "INSERT INTO results (id, user_id, round, score, status";
       await conn.execute(query, [score, prize || null]);
       res.status(200).json({ message: "Result saved successfully" });
     } finally {

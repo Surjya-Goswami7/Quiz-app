@@ -25,9 +25,7 @@ export default function Home() {
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black">
-        <p className="text-white text-xl font-medium animate-pulse">
-          Loading...
-        </p>
+        <div className="w-12 h-12 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -37,11 +35,11 @@ export default function Home() {
       {/* Navbar */}
       <nav className="absolute top-0 left-0 w-full flex justify-between items-center px-10 py-5 bg-transparent backdrop-blur-sm z-10">
         <div className="flex items-center gap-3">
-          <img
-            src="/logo.png"
+          {/* <img
+           // src="/logo.png"
             alt="QuizMaster Logo"
             className="w-10 h-10 drop-shadow-lg"
-          />
+          /> */}
           <h1 className="text-2xl font-extrabold tracking-wide text-white drop-shadow-lg">
             Quiz<span className="text-yellow-400">Master</span>
           </h1>
@@ -84,9 +82,9 @@ export default function Home() {
         {/* If logged in, show Start Quiz button; otherwise Login to Play */}
         <button
           onClick={handleStartQuiz}
-          className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-300 hover:to-orange-400 text-black font-semibold px-10 py-4 rounded-full text-lg shadow-lg transform hover:scale-105 transition duration-300"
+          className=" cursor-pointer bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-300 hover:to-orange-400 text-black font-semibold px-10 py-4 rounded-full text-lg shadow-lg transform hover:scale-105 transition duration-300"
         >
-          {session?.user ? "🚀 Start the Quiz" : "🎮 Login to Play"}
+          {session?.user ? "Play Now !" : "Login to Play"}
         </button>
 
         <p className="mt-10 text-sm text-gray-400 italic">
