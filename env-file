@@ -1,0 +1,10 @@
+GOOGLE_CLIENT_ID=689219036887-pvk523glskro0l9pb7vsvj3fbrdp20mb.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=""
+DB_NAME=quiz_app
+
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=2eaf1906685e2ce28fb9a5fd235440651ac43d558fd2c4062beedf81e00d90cb
