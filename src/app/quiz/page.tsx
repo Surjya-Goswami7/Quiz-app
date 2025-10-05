@@ -128,6 +128,16 @@ export default function QuizPage() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
+  /* ------------------------- Reset state when a new round starts ------------------------- */
+  useEffect(() => {
+    // clear previous answers and reset timers when moving to a new round
+    setAnswersMap({});
+    setIndex(0);
+    setSelected(null);
+    setVisibleOptions(null);
+    setTimeLeft(TIMER_SECONDS);
+    setConsecutiveWrong(0);
+  }, [roundIdx]);
 
   /* ------------------------- Lifelines ------------------------- */
   const consumeLifeline = (
@@ -318,9 +328,9 @@ export default function QuizPage() {
 
   /* ------------------------- Finish ------------------------- */
   const handleFinish = async () => {
-    if (!session?.user) { 
-       signIn("google", { callbackUrl: "/" });
-       return
+    if (!session?.user) {
+      signIn("google", { callbackUrl: "/" });
+      return;
     }
     const userId = session?.user.id;
     let prize: string | null = null;
@@ -474,18 +484,28 @@ export default function QuizPage() {
           {/* Right column (lifelines, progress, actions) */}
           <div className="w-80 flex flex-col gap-4">
             <div className="bg-[#071427] rounded-lg p-4 border border-[rgba(255,255,255,0.02)]">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-gray-400">Lifelines</span>
-                  <div className="relative group">
-                    <i className="text-gray-400 text-xs cursor-pointer border border-gray-600 rounded-full px-[6px] py-[1px]">i</i>
-                    {/* Tooltip */}
-                    <div className="absolute right-0 top-5 hidden w-56 text-[11px] text-gray-300 bg-[#0d1a2e] border border-gray-700 rounded-lg p-2 shadow-lg group-hover:block z-10">
-                      <p className="mb-1"><strong>Skip</strong> – Skip the current question once per round.</p>
-                      <p className="mb-1"><strong>50/50</strong> – Removes two incorrect options.</p>
-                      <p><strong>Bonus</strong> – Earn +1 extra point for a correct answer.</p>
-                    </div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs text-gray-400">Lifelines</span>
+                <div className="relative group">
+                  <i className="text-gray-400 text-xs cursor-pointer border border-gray-600 rounded-full px-[6px] py-[1px]">
+                    i
+                  </i>
+                  {/* Tooltip */}
+                  <div className="absolute right-0 top-5 hidden w-56 text-[11px] text-gray-300 bg-[#0d1a2e] border border-gray-700 rounded-lg p-2 shadow-lg group-hover:block z-10">
+                    <p className="mb-1">
+                      <strong>Skip</strong> – Skip the current question once per
+                      round.
+                    </p>
+                    <p className="mb-1">
+                      <strong>50/50</strong> – Removes two incorrect options.
+                    </p>
+                    <p>
+                      <strong>Bonus</strong> – Earn +1 extra point for a correct
+                      answer.
+                    </p>
                   </div>
                 </div>
+              </div>
 
               {/* Skip button — pink gradient pill */}
               <button
